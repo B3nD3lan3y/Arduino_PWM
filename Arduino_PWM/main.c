@@ -7,6 +7,8 @@
 
 #include "sam.h"
 #include "pwm.h"
+#include "timer.h"
+#include "adc.h"
 
 //-----------------------------------------------------------------------------
 //      __   ___  ___         ___  __
@@ -36,10 +38,6 @@ infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.ddi0484c/CHDCICDF.html
 #define DelayTicks(ticks) {volatile uint32_t n=ticks; while(n--);}//takes 8 cycles
 #define DelayMs(ms) DelayTicks(MS_TO_DLYTICKS(ms))//uses 20bytes
 
-// for fading the lights
-#define LED_R0 (0)
-#define LED_G0 (1)
-#define LED_B0 (2)
 
 //-----------------------------------------------------------------------------
 //     ___      __   ___  __   ___  ___  __
@@ -55,20 +53,12 @@ infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.ddi0484c/CHDCICDF.html
 //
 //-----------------------------------------------------------------------------
 
-// I know this global is ugly, but we'll use it for now. Eventually, instead of
-// calling DelayMs(delay), we will call a delay method which uses the timer and
-// the value from the adc.
- static uint16_t fade_delay = 5; // delay per step 
-
 //-----------------------------------------------------------------------------
 //      __   __   __  ___  __  ___      __   ___  __
 //     |__) |__) /  \  |  /  \  |  \ / |__) |__  /__`
 //     |    |  \ \__/  |  \__/  |   |  |    |___ .__/
 //
 //-----------------------------------------------------------------------------
-
-void fade_in_led(uint8_t led);
-void fade_out_led(uint8_t led);
 
 //-----------------------------------------------------------------------------
 //      __        __          __
@@ -80,24 +70,41 @@ void fade_out_led(uint8_t led);
 //=============================================================================
 int main(void)
 {
-  /* Initialize the SAM system */
-  SystemInit();
-  pwm_init();
+    /* Initialize the SAM system */
+    SystemInit();
+    pwm_init();
+	adc_init();
 
-  // note: I use 0-50% duty cycle as the range for LEDs here, just so they're
-  // not so bright
+    uint8_t red = 0x00;
+    uint8_t green = (0xff / 3);
+    uint8_t blue = (0xff * 2 / 3);
 
-  pwm_r0_set(LED_HALF_BRIGHTNESS); // start the cycle with red
+    // The speed at which we rotate
+    uint16_t delay = 50;
+    uint16_t elapsed = 0;
+    
 
-  while (1) 
-  {
-    fade_in_led(LED_G0);  // transition to yellow
-    fade_out_led(LED_R0); // transition to green
-    fade_in_led(LED_B0);  // transition to cyan
-    fade_out_led(LED_G0); // transition to blue
-    fade_in_led(LED_R0);  // transition to magenta
-    fade_out_led(LED_B0); // transition to red
-  }
+    /* Replace with your application code */
+    while (1) 
+    {
+        // Delay before going again.
+        DelayMs(1);
+        elapsed++;
+
+        // If the full delay has elapsed, rotate the LEDs
+        if (elapsed >= adc_pot_get() / 8)
+        {
+            elapsed = 0;
+            // Rotate the leds
+            pwm_r0_set(red);
+            pwm_g0_set(green);
+            pwm_b0_set(blue);
+
+            red = (red + 1) % 0x80;
+            green = (green + 1) % 0x80;
+            blue = (blue + 1) % 0x80;
+        }
+    }
 }
 
 //-----------------------------------------------------------------------------
@@ -106,62 +113,6 @@ int main(void)
 //     |    |  \ |  \/  /~~\  |  |___
 //
 //-----------------------------------------------------------------------------
-
-//==============================================================================
-// led is either 0 (G0), 1 (R0), or 2 (B0)
-//==============================================================================
-void fade_in_led(uint8_t led)
-{
-  int current_val = LED_OFF;
-  
-  // change the first value to LED_FULL_BRIGHTNESS to get the full range
-  while (LED_HALF_BRIGHTNESS > current_val)
-  {
-    DelayMs(fade_delay);
-    current_val++;
-    
-    if (LED_R0 == led)
-    {
-      pwm_r0_set(current_val);
-    }
-    else if (LED_G0 == led)
-    {
-      pwm_g0_set(current_val);
-    }
-    else
-    {
-      pwm_b0_set(current_val);
-    }
-  }
-}
-
-//==============================================================================
-// led is either 0 (G0), 1 (R0), or 2 (B0)
-//==============================================================================
-void fade_out_led(uint8_t led)
-{
-  // change to LED_FULL_BRIGHTNESS if using the full range of brightness
-  int current_val = LED_HALF_BRIGHTNESS;
-  
-  while (LED_OFF < current_val)
-  {
-    DelayMs(fade_delay);
-    current_val--;
-    
-    if (LED_R0 == led)
-    {
-      pwm_r0_set(current_val);
-    }
-    else if (LED_G0 == led)
-    {
-      pwm_g0_set(current_val);
-    }
-    else
-    {
-      pwm_b0_set(current_val);
-    }
-  }
-}
 
 //-----------------------------------------------------------------------------
 //        __   __   __

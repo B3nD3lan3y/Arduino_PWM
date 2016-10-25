@@ -64,59 +64,59 @@ void __libc_init_array(void);
 void Dummy_Handler(void);
 
 /* Cortex-M0+ core handlers */
-void NMI_Handler            ( void ); 
-void HardFault_Handler      ( void ); 
-void SVC_Handler            ( void ); 
-void PendSV_Handler         ( void ); 
-void SysTick_Handler        ( void ); 
+void NMI_Handler             ( void ) __attribute__ ((weak, alias("Dummy_Handler")));
+void HardFault_Handler       ( void ) __attribute__ ((weak, alias("Dummy_Handler")));
+void SVC_Handler             ( void ) __attribute__ ((weak, alias("Dummy_Handler")));
+void PendSV_Handler          ( void ) __attribute__ ((weak, alias("Dummy_Handler")));
+void SysTick_Handler         ( void ) __attribute__ ((weak, alias("Dummy_Handler")));
 
 /* Peripherals handlers */
-void PM_Handler             ( void ); 
-void SYSCTRL_Handler        ( void ); 
-void WDT_Handler            ( void ); 
-void RTC_Handler            ( void ); 
-void EIC_Handler            ( void ); 
-void NVMCTRL_Handler        ( void ); 
-void DMAC_Handler           ( void ); 
+void PM_Handler              ( void ) __attribute__ ((weak, alias("Dummy_Handler")));
+void SYSCTRL_Handler         ( void ) __attribute__ ((weak, alias("Dummy_Handler")));
+void WDT_Handler             ( void ) __attribute__ ((weak, alias("Dummy_Handler")));
+void RTC_Handler             ( void ) __attribute__ ((weak, alias("Dummy_Handler")));
+void EIC_Handler             ( void ) __attribute__ ((weak, alias("Dummy_Handler")));
+void NVMCTRL_Handler         ( void ) __attribute__ ((weak, alias("Dummy_Handler")));
+void DMAC_Handler            ( void ) __attribute__ ((weak, alias("Dummy_Handler")));
 #ifdef ID_USB
-void USB_Handler            ( void ); 
+void USB_Handler             ( void ) __attribute__ ((weak, alias("Dummy_Handler")));
 #endif
-void EVSYS_Handler          ( void ); 
-void SERCOM0_Handler        ( void ); 
-void SERCOM1_Handler        ( void ); 
-void SERCOM2_Handler        ( void ); 
-void SERCOM3_Handler        ( void ); 
+void EVSYS_Handler           ( void ) __attribute__ ((weak, alias("Dummy_Handler")));
+void SERCOM0_Handler         ( void ) __attribute__ ((weak, alias("Dummy_Handler")));
+void SERCOM1_Handler         ( void ) __attribute__ ((weak, alias("Dummy_Handler")));
+void SERCOM2_Handler         ( void ) __attribute__ ((weak, alias("Dummy_Handler")));
+void SERCOM3_Handler         ( void ) __attribute__ ((weak, alias("Dummy_Handler")));
 #ifdef ID_SERCOM4
-void SERCOM4_Handler        ( void ); 
+void SERCOM4_Handler         ( void ) __attribute__ ((weak, alias("Dummy_Handler")));
 #endif
 #ifdef ID_SERCOM5
-void SERCOM5_Handler        ( void ); 
+void SERCOM5_Handler         ( void ) __attribute__ ((weak, alias("Dummy_Handler")));
 #endif
-void TCC0_Handler           ( void ); 
-void TCC1_Handler           ( void ); 
-void TCC2_Handler           ( void ); 
-void TC3_Handler            ( void ); 
-void TC4_Handler            ( void ); 
-void TC5_Handler            ( void ); 
+void TCC0_Handler            ( void ) __attribute__ ((weak, alias("Dummy_Handler")));
+void TCC1_Handler            ( void ) __attribute__ ((weak, alias("Dummy_Handler")));
+void TCC2_Handler            ( void ) __attribute__ ((weak, alias("Dummy_Handler")));
+void TC3_Handler             ( void ) __attribute__ ((weak, alias("Dummy_Handler")));
+void TC4_Handler             ( void ) __attribute__ ((weak, alias("Dummy_Handler")));
+void TC5_Handler             ( void ) __attribute__ ((weak, alias("Dummy_Handler")));
 #ifdef ID_TC6
-void TC6_Handler            ( void ); 
+void TC6_Handler             ( void ) __attribute__ ((weak, alias("Dummy_Handler")));
 #endif
 #ifdef ID_TC7
-void TC7_Handler            ( void ); 
+void TC7_Handler             ( void ) __attribute__ ((weak, alias("Dummy_Handler")));
 #endif
 #ifdef ID_ADC
-void ADC_Handler            ( void ); 
+void ADC_Handler             ( void ) __attribute__ ((weak, alias("Dummy_Handler")));
 #endif
 #ifdef ID_AC
-void AC_Handler             ( void ); 
+void AC_Handler              ( void ) __attribute__ ((weak, alias("Dummy_Handler")));
 #endif
 #ifdef ID_DAC
-void DAC_Handler            ( void ); 
+void DAC_Handler             ( void ) __attribute__ ((weak, alias("Dummy_Handler")));
 #endif
 #ifdef ID_PTC
-void PTC_Handler            ( void ); 
+void PTC_Handler             ( void ) __attribute__ ((weak, alias("Dummy_Handler")));
 #endif
-void I2S_Handler            ( void ); 
+void I2S_Handler             ( void ) __attribute__ ((weak, alias("Dummy_Handler")));
 
 /* Exception Table */
 __attribute__ ((section(".vectors")))
@@ -267,59 +267,3 @@ void Dummy_Handler(void)
         while (1) {
         }
 }
-
-
-/* Cortex-M0+ core handlers */
-void NMI_Handler             ( void ) { while (1); }
-void HardFault_Handler       ( void ) { while (1); }
-void SVC_Handler             ( void ) { while (1); }
-void PendSV_Handler          ( void ) { while (1); }
-void SysTick_Handler         ( void ) { while (1); }
-
-/* Peripherals handlers */
-void PM_Handler              ( void ) { while (1); }
-void SYSCTRL_Handler         ( void ) { while (1); }
-void WDT_Handler             ( void ) { while (1); }
-void RTC_Handler             ( void ) { while (1); }
-void EIC_Handler             ( void ) { while (1); }
-void NVMCTRL_Handler         ( void ) { while (1); }
-void DMAC_Handler            ( void ) { while (1); }
-#ifdef ID_USB
-void USB_Handler             ( void ) { while (1); }
-#endif
-void EVSYS_Handler           ( void ) { while (1); }
-void SERCOM0_Handler         ( void ) { while (1); }
-void SERCOM1_Handler         ( void ) { while (1); }
-void SERCOM2_Handler         ( void ) { while (1); }
-void SERCOM3_Handler         ( void ) { while (1); }
-#ifdef ID_SERCOM4
-void SERCOM4_Handler         ( void ) { while (1); }
-#endif
-#ifdef ID_SERCOM5
-void SERCOM5_Handler         ( void ) { while (1); }
-#endif
-void TCC0_Handler            ( void ) { while (1); }
-void TCC1_Handler            ( void ) { while (1); }
-void TCC2_Handler            ( void ) { while (1); }
-void TC3_Handler             ( void ) { while (1); }
-void TC4_Handler             ( void ) { while (1); }
-void TC5_Handler             ( void ) { while (1); }
-#ifdef ID_TC6
-void TC6_Handler             ( void ) { while (1); }
-#endif
-#ifdef ID_TC7
-void TC7_Handler             ( void ) { while (1); }
-#endif
-#ifdef ID_ADC
-void ADC_Handler             ( void ) { while (1); }
-#endif
-#ifdef ID_AC
-void AC_Handler              ( void ) { while (1); }
-#endif
-#ifdef ID_DAC
-void DAC_Handler             ( void ) { while (1); }
-#endif
-#ifdef ID_PTC
-void PTC_Handler             ( void ) { while (1); }
-#endif
-void I2S_Handler             ( void ) { while (1); }
