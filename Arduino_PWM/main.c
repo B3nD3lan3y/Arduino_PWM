@@ -39,6 +39,16 @@ infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.ddi0484c/CHDCICDF.html
 #define DelayMs(ms) DelayTicks(MS_TO_DLYTICKS(ms))//uses 20bytes
 
 
+// Value, passed to led_set, can be in the range 0 to 255
+#define LED_VAL_MIN       (0x00)
+#define LED_VAL_MAX       (0xff)
+// When the value rolls over, the LED will be red
+#define LED_VAL_RED       (LED_VAL_MIN)
+// One third of the way through its cycle, the LED will be green
+#define LED_VAL_GREEN     (LED_VAL_MAX / 3)
+// Two thirds of the way through its cycle, the LED will be blue
+#define LED_VAL_BLUE      ((LED_VAL_MAX * 2) / 3)
+
 //-----------------------------------------------------------------------------
 //     ___      __   ___  __   ___  ___  __
 //      |  \ / |__) |__  |  \ |__  |__  /__`
@@ -75,14 +85,11 @@ int main(void)
     pwm_init();
 	adc_init();
 
-    uint8_t red = 0x00;
-    uint8_t green = (0xff / 3);
-    uint8_t blue = (0xff * 2 / 3);
+	// Maintain a counter of how far through the 256 step cycle we are.
+    uint8_t led_value = LED_VAL_MIN;
 
     // The speed at which we rotate
-    uint16_t delay = 50;
-    uint16_t elapsed = 0;
-    
+    uint16_t elapsed = 0;    
 
     /* Replace with your application code */
     while (1) 
@@ -92,17 +99,17 @@ int main(void)
         elapsed++;
 
         // If the full delay has elapsed, rotate the LEDs
-        if (elapsed >= adc_pot_get() / 8)
+        if (elapsed >= adc_pot_get() / 64)
         {
             elapsed = 0;
-            // Rotate the leds
-            pwm_r0_set(red);
-            pwm_g0_set(green);
-            pwm_b0_set(blue);
+            
+			led_value++;
+			if (led_value > LED_VAL_MAX)
+			{
+				led_value = LED_VAL_MIN;
+			}
 
-            red = (red + 1) % 0x80;
-            green = (green + 1) % 0x80;
-            blue = (blue + 1) % 0x80;
+			led_set(led_value);
         }
     }
 }
@@ -114,6 +121,54 @@ int main(void)
 //
 //-----------------------------------------------------------------------------
 
+
+//==============================================================================
+// Set how far through the red -> green -> blue cycle the LED is.
+// LED_VAL_[COLOR] constants in led.h can set individual colors, and consistent
+// incrementing of value cycles smoothly through the spectrum.
+//==============================================================================
+void led_set(uint8_t value)
+{
+  // NOTE: LED_VAL_RED = 0, LED_VAL_GREEN = 1/3 LED_VAL_MAX, and LED_VAL_BLUE
+  //  = 2/3 LED_VAL_MAX. Consequently, those three values divide the domain of
+  // this function into three (approximately, because ints) equal parts.
+
+  // 0 <= value <= LED_VAL_GREEN is the first third of the cycle. Red is
+  // ramping down and green is ramping up.
+  if (value <= LED_VAL_GREEN)
+  {
+    // Red is ramping down
+    pwm_r0_set(LED_VAL_GREEN - value);
+    // Green is ramping up
+    pwm_g0_set(value);
+    // Blue is off
+    pwm_b0_set(0);
+  }
+
+  // LED_VAL_GREEN < value <= LED_VAL_BLUE is the second third of the cycle.
+  // Green is ramping down and blue is ramping up.
+  else if (value <= LED_VAL_BLUE)
+  {
+    // Red is off
+    pwm_r0_set(0);
+    // Green is ramping down
+    pwm_g0_set(LED_VAL_BLUE - value);
+    // Blue is ramping up
+    pwm_b0_set(value - LED_VAL_GREEN);
+  }
+
+  // LED_VAL_BLUE < value <= LED_VAL_MAX is the final third of the cycle.
+  // Blue is ramping down and red is ramping up.
+  else
+  {
+    // Red is ramping up
+    pwm_r0_set(value - LED_VAL_BLUE);
+    // Green is off
+    pwm_g0_set(0);
+    // Blue is ramping down
+    pwm_b0_set(LED_VAL_MAX - value);
+  }
+}
 //-----------------------------------------------------------------------------
 //        __   __   __
 //     | /__` |__) /__`
