@@ -201,7 +201,7 @@ void pwm_init()
 void pwm_r0_set(uint8_t hue)
 {
   TCC0->CCB[1].bit.CCB = hue;
-  while ( TCC0->SYNCBUSY.bit.CC1 )
+  while ( TCC0->SYNCBUSY.bit.CCB1 )
   {
     ;
   }
@@ -210,7 +210,7 @@ void pwm_r0_set(uint8_t hue)
 void pwm_g0_set(uint8_t hue)
 {
   TCC0->CCB[0].bit.CCB = hue;
-  while ( TCC0->SYNCBUSY.bit.CC0 )
+  while ( TCC0->SYNCBUSY.bit.CCB0 )
   {
     ;
   }
@@ -219,7 +219,7 @@ void pwm_g0_set(uint8_t hue)
 void pwm_b0_set(uint8_t hue)
 {
   TCC1->CCB[1].bit.CCB = hue;
-  while ( TCC1->SYNCBUSY.bit.CC1 )
+  while ( TCC1->SYNCBUSY.bit.CCB1 )
   {
     ;
   }
