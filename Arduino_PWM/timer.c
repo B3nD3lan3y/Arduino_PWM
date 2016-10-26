@@ -6,8 +6,8 @@
 //------------------------------------------------------------------------------
 
 #include "timer.h"
-#include <sam.h>
-#include <stdint.h>
+#include "sam.h"
+//#include <tc3.h>
 
 //------------------------------------------------------------------------------
 //      __   ___  ___         ___  __
@@ -29,7 +29,8 @@
 //      \/  /~~\ |  \ | /~~\ |__) |___ |___ .__/
 //
 //------------------------------------------------------------------------------
-static volatile uint64_t millis = 0;	// number of milliseconds
+
+static volatile uint64_t counter = 0;
 
 //------------------------------------------------------------------------------
 //      __   __   __  ___  __  ___      __   ___  __
@@ -46,48 +47,49 @@ static volatile uint64_t millis = 0;	// number of milliseconds
 //------------------------------------------------------------------------------
 
 //==============================================================================
-//	TCC0 Setup
-//	Clock speed: 750,000 MHz
-//	Mode: Match Frequency Generation
-//	Interrupt flag used: overflow
-//==============================================================================
-void timer_init(void)
+void timer_init()
 {
-	// Make sure TCC0 is disabled before setup
-	TCC0 -> CTRLA.reg &= ~(TCC_CTRLA_ENABLE);
-	
-	// Enable TC  bus clock (CLK_TCx_APB) and scale the clock
-	GCLK -> CLKCTRL.reg = GCLK_CLKCTRL_ID(GCLK_CLKCTRL_ID_TCC0_TCC1) | GCLK_CLKCTRL_GEN_GCLK0 | GCLK_CLKCTRL_CLKEN;
-	PM -> APBCMASK.reg |= PM_APBCMASK_TCC0;
-	TCC0 -> WAVE.reg |= TCC_WAVE_WAVEGEN_MFRQ;
-	TCC0 -> CTRLA.reg |= TCC_CTRLA_PRESCALER_DIV64;
-	
-	// A little more thorough
-	NVIC_DisableIRQ(TCC0_IRQn);
-	NVIC_ClearPendingIRQ(TCC0_IRQn);
-	NVIC_SetPriority(TCC0_IRQn, 0);
-	NVIC_EnableIRQ(TCC0_IRQn);
-	
-	// Enable compare interrupt
-	TCC0 -> INTENSET.reg |= TCC_INTENSET_OVF;
-	TCC0 -> CC[0].reg = 0x2ED;
-	TCC0 -> CTRLA.reg |= TCC_CTRLA_ENABLE;
+	// Set up the TC with the right general clock
+	GCLK->CLKCTRL.reg = GCLK_CLKCTRL_ID(GCLK_CLKCTRL_ID_TCC2_TC3) | GCLK_CLKCTRL_GEN_GCLK3 | GCLK_CLKCTRL_CLKEN;
+	PM->APBCMASK.reg |= PM_APBCMASK_TC3;
+
+	NVIC_DisableIRQ(TC3_IRQn);
+	NVIC_ClearPendingIRQ(TC3_IRQn);
+	NVIC_SetPriority(TC3_IRQn, 0);
+	NVIC_EnableIRQ(TC3_IRQn);
+
+	// set up TC control registers
+	TC3->COUNT8.CTRLA.reg = (TC_CTRLA_PRESCSYNC_PRESC | TC_CTRLA_PRESCALER_DIV16 | TC_CTRLA_WAVEGEN_MFRQ | TC_CTRLA_MODE_COUNT8); // PRESYNC = 1, RUNSTBY = 0, PRESCALER = 0, WAVEGEN = 1, MODE = 1, ENABLE = 0, SWRST = 0
+	while(TC3->COUNT8.STATUS.reg & TC_STATUS_SYNCBUSY);
+
+	TC3->COUNT8.EVCTRL.reg = TC_EVCTRL_MCEO1; // MCEO1 = 1
+	while(TC3->COUNT8.STATUS.reg & TC_STATUS_SYNCBUSY);
+
+	TC3->COUNT8.INTENSET.bit.OVF = 1; // OVF = 1
+	while(TC3->COUNT8.STATUS.reg & TC_STATUS_SYNCBUSY);
+
+	TC3->COUNT8.CTRLA.reg |= TC_CTRLA_ENABLE; // ENABLE = 1
+	while(TC3->COUNT8.STATUS.reg & TC_STATUS_SYNCBUSY);
+
+	TC3->COUNT8.CC[0].reg = 250;
 }
 
-//==============================================================================
-//	Set timer to certain number of milliseconds
-//==============================================================================
-void timer_set(uint64_t ms_value)
-{
-	millis = ms_value;
-}
-
-//==============================================================================
-//	Get the current value of timer
 //==============================================================================
 uint64_t timer_get()
 {
-	return millis;
+	return counter;
+}
+
+//==============================================================================
+void timer_set(uint64_t new_count)
+{
+	counter = new_count;
+}
+
+//==============================================================================
+void timer_set_period(uint8_t new_period)
+{
+	TC3->COUNT8.CC[0].reg = new_period;
 }
 
 //------------------------------------------------------------------------------
@@ -106,12 +108,13 @@ uint64_t timer_get()
 
 //------------------------------------------------------------------------------
 //        __   __  , __
-//     | /__` |__)  /__`
+//     | /__` |__)  /__`   
 //     | .__/ |  \  .__/
 //
 //------------------------------------------------------------------------------
-void TCC0_Handler()
+
+void TC3_Handler()
 {
-	millis++;
-	TCC0 -> INTFLAG.reg |= TCC_INTFLAG_OVF;
+	counter++;
+	TC3->COUNT8.INTFLAG.reg = 0x01;
 }
