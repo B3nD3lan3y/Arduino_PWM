@@ -128,15 +128,15 @@ void pwm_init()
   
   TCC0->WEXCTRL.bit.OTMX      = 0x1;      // Alternate CC0 and CC1 for all 8 outputs
   
-  // G0 CC
-  TCC0->CC[0].bit.CC          = 0;
-  while ( TCC0->SYNCBUSY.bit.CC0 )
+  // G0 CCB
+  TCC0->CCB[0].bit.CCB          = 0;
+  while ( TCC0->SYNCBUSY.bit.CCB0 )
   {
     ;
   }
-  // R0 CC
-  TCC0->CC[1].bit.CC          = 0;
-  while ( TCC0->SYNCBUSY.bit.CC1 )
+  // R0 CCB
+  TCC0->CCB[1].bit.CCB          = 0;
+  while ( TCC0->SYNCBUSY.bit.CCB1 )
   {
     ;
   }
@@ -184,19 +184,23 @@ void pwm_init()
   }
   
   TCC1->WEXCTRL.bit.OTMX      = 0x1;      // Alternate CC0 and CC1
-  // B0 CC
-  TCC1->CC[1].bit.CC          = 0;
-  while ( TCC1->SYNCBUSY.bit.CC1 )
+  // B0 CCB
+  TCC1->CCB[1].bit.CCB          = 0;
+  while ( TCC1->SYNCBUSY.bit.CCB1 )
   {
     ;
   }
   
   TCC1->CTRLA.bit.ENABLE      = 1;
+
+  // Enable double buffering
+  TCC0->CTRLBCLR.bit.LUPD = 1;
+  TCC1->CTRLBCLR.bit.LUPD = 1;
 }
 
 void pwm_r0_set(uint8_t hue)
 {
-  TCC0->CC[1].bit.CC = hue;
+  TCC0->CCB[1].bit.CCB = hue;
   while ( TCC0->SYNCBUSY.bit.CC1 )
   {
     ;
@@ -205,7 +209,7 @@ void pwm_r0_set(uint8_t hue)
 
 void pwm_g0_set(uint8_t hue)
 {
-  TCC0->CC[0].bit.CC = hue;
+  TCC0->CCB[0].bit.CCB = hue;
   while ( TCC0->SYNCBUSY.bit.CC0 )
   {
     ;
@@ -214,7 +218,7 @@ void pwm_g0_set(uint8_t hue)
 
 void pwm_b0_set(uint8_t hue)
 {
-  TCC1->CC[1].bit.CC = hue;
+  TCC1->CCB[1].bit.CCB = hue;
   while ( TCC1->SYNCBUSY.bit.CC1 )
   {
     ;
