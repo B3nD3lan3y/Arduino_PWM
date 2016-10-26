@@ -82,7 +82,7 @@ void adc_init()
 	ADC->AVGCTRL.reg = 0x00;
 
 	// Default sample time (1/2 CLK_ADC cycles)
-	ADC->SAMPCTRL.reg = 0x00;
+	ADC->SAMPCTRL.reg = 0x3f;
 
 	// Set prescaler to /16, set to free running mode.
 	// Leave at default 12-bit resolution. Leave right adjusted default.
